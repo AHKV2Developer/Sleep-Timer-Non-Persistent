@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sleep Player LIGHT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: sans-serif; background: #0a0a0a; color: #d0d0d0; text-align: center; padding: 15px; margin: 0; }
+        .val { font-size: 40px; font-weight: bold; color: #00ff00; }
+        .adj-btn { width: 60px; height: 60px; font-size: 24px; border-radius: 50%; background: #222; color: white; border: 1px solid #444; margin: 10px; }
+        #status { font-size: 14px; color: #888; margin: 10px 0; letter-spacing: 1px; }
+        #timeLeft { font-size: 48px; font-family: monospace; color: #00ff00; margin: 15px 0; }
+        #trackInfo { font-size: 14px; color: #666; margin-bottom: 20px; }
+        .arm-btn { width: 100%; padding: 30px; font-size: 24px; background: #1a3a1a; color: white; border: 2px solid #2a5a2a; border-radius: 15px; font-weight: bold; }
+        .stop-btn { width: 100%; padding: 15px; background: #400; color: white; border: none; border-radius: 10px; margin-top: 20px; display: none; }
+        #fileInput { display: none; }
+        .file-label { display: block; padding: 20px; border: 2px dashed #444; border-radius: 10px; margin-bottom: 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="status">SYSTEM IDLE</div>
+    <div id="timeLeft">00:00</div>
+
+    <div style="display: flex; align-items: center; justify-content: center;">
+        <button class="adj-btn" onclick="adjustTime(-1)">-</button>
+        <span id="timeVal" class="val">12</span>
+        <button class="adj-btn" onclick="adjustTime(1)">+</button>
+    </div>
+
+    <div id="trackInfo">NO FILE LOADED</div>
+
+    <input type="file" id="fileInput" accept="audio/*" onchange="handleFile(this)">
+    <label for="fileInput" class="file-label" id="fileLabel">1. SELECT AUDIO</label>
+    
+    <button id="startBtn" class="arm-btn" onclick="armSystem()">2. ARM SYSTEM</button>
+    <button id="stopBtn" class="stop-btn" onclick="stopSystem()">ABORT MISSION</button>
+
+    <script>
+        let player = new Audio();
+        let sleepMinutes = 12, targetEndTime, displayInterval, fadeInterval, masterTimer;
+        let wakeLock = null;
+
+        function adjustTime(delta) {
+            sleepMinutes = Math.max(1, sleepMinutes + delta);
+            document.getElementById('timeVal').innerText = sleepMinutes;
+        }
+
+        function handleFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            // Create a "Pointer" to the file (Ultra-low RAM usage)
+            player.src = URL.createObjectURL(file);
+            player.load();
+            
+            document.getElementById('trackInfo').innerText = file.name;
+            document.getElementById('fileLabel').innerText = "CHANGE FILE";
+            updateStatus("FILE LOADED", false);
+        }
+
+        async function armSystem() {
+            if (!player.src) return alert("Select a file first.");
+
+            // Standard permission/wake-lock handshake
+            try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e){}
+            
+            player.play();
+            updateStatus("SYSTEM ARMED", true);
+            
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'block';
+
+            resetTimer();
+            
+            // Shake and Flip Sensors
+            window.addEventListener('devicemotion', (e) => {
+                let acc = e.accelerationIncludingGravity;
+                if (!acc) return;
+                // Flip to stop (Z axis)
+                if (acc.z < -8) stopSystem();
+                // Shake to reset
+                if (Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z) > 18) resetTimer();
+            });
+
+            displayInterval = setInterval(updateDisplay, 1000);
+        }
+
+        function resetTimer() {
+            clearTimeout(masterTimer);
+            clearInterval(fadeInterval);
+            player.volume = 1.0;
+            
+            targetEndTime = Date.now() + (sleepMinutes * 60 * 1000);
+            updateStatus("ARMED & MONITORING", true);
+
+            // Set the fade to start 30 seconds before the end
+            masterTimer = setTimeout(startFade, (sleepMinutes * 60 * 1000) - 30000);
+        }
+
+        function startFade() {
+            updateStatus("FADING OUT...", false);
+            let steps = 30;
+            fadeInterval = setInterval(() => {
+                steps--;
+                player.volume = Math.max(0, steps / 30);
+                if (steps <= 0) stopSystem();
+            }, 1000);
+        }
+
+        function updateDisplay() {
+            const diff = Math.max(0, targetEndTime - Date.now());
+            const m = Math.floor(diff / 60000), s = Math.floor((diff % 60000) / 1000);
+            document.getElementById('timeLeft').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        }
+
+        function updateStatus(msg, active) {
+            const s = document.getElementById('status');
+            s.innerText = msg;
+            s.style.color = active ? "#00ff00" : "#888";
+        }
+
+        function stopSystem() {
+            player.pause();
+            clearInterval(displayInterval);
+            clearInterval(fadeInterval);
+            clearTimeout(masterTimer);
+            if (wakeLock) wakeLock.release();
+            
+            document.getElementById('startBtn').style.display = 'block';
+            document.getElementById('stopBtn').style.display = 'none';
+            updateStatus("MISSION STOPPED", false);
+        }
+    </script>
+</body>
+</html>
