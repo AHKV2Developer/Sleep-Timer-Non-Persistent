@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Sleep Player LIGHT v6</title>
+    <title>Sleep Player LIGHT v7</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <style>
         body { font-family: sans-serif; background: #0a0a0a; color: #d0d0d0; text-align: center; padding: 10px; margin: 0; overflow: hidden; }
@@ -18,32 +18,29 @@
         
         #trackProgress { font-size: 18px; font-family: monospace; color: #aaa; margin-bottom: 10px; }
 
-        /* MATCHED SIZE BOX */
+        /* MATCHED SIZE BOX WITH EXPLICIT CENTERING */
         #fileInput { display: none; }
         .file-label { 
             display: block; 
-            padding: 20px; /* Matched to ARM button padding */
+            padding: 20px; 
             border: 1px dashed #444; 
             border-radius: 12px; 
-            margin: 8px auto; 
+            margin: 8px auto; /* 'auto' handles horizontal centering */
             width: 90%; 
             cursor: pointer; 
             background: #111;
-            font-size: 22px; /* Matched to ARM font size */
-            font-weight: normal; /* Not bold */
+            font-size: 22px; 
+            font-weight: normal; 
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             box-sizing: border-box;
         }
-        .file-label.loaded {
-            border: 1px solid #2a5a2a;
-            background: #0d1a0d;
-            color: #fff;
-        }
+        .file-label.loaded { border: 1px solid #2a5a2a; background: #0d1a0d; color: #fff; }
 
-        /* THE ARM BUTTON */
+        /* CENTERING BOTH BUTTONS */
         .arm-btn { 
+            display: block;
             width: 90%; 
             padding: 20px; 
             font-size: 22px; 
@@ -51,11 +48,23 @@
             color: white; 
             border: 2px solid #2a5a2a; 
             border-radius: 12px; 
-            font-weight: bold; /* Keeping ARM bold for visual hierarchy */
+            font-weight: bold; 
             letter-spacing: 2px;
+            margin: 8px auto; /* Centers the button */
         }
         
-        .stop-btn { width: 90%; padding: 18px; font-size: 20px; background: #500; color: white; border: none; border-radius: 12px; margin-top: 5px; display: none; }
+        .stop-btn { 
+            display: none; /* Hidden by default */
+            width: 90%; 
+            padding: 20px; 
+            font-size: 20px; 
+            background: #500; 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            margin: 8px auto; /* Centers the button */
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
