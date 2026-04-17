@@ -2,45 +2,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Sleep Player LIGHT v3</title>
+    <title>Sleep Player LIGHT v4</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { font-family: sans-serif; background: #0a0a0a; color: #d0d0d0; text-align: center; padding: 15px; margin: 0; }
-        .val { font-size: 44px; font-weight: bold; color: #00ff00; }
-        .adj-btn { width: 64px; height: 64px; font-size: 26px; border-radius: 50%; background: #222; color: white; border: 1px solid #444; margin: 10px; }
-        #status { font-size: 14px; color: #888; margin: 10px 0; letter-spacing: 1px; height: 1.2em; text-transform: uppercase; }
-        #timeLeft { font-size: 52px; font-family: monospace; color: #00ff00; margin: 5px 0; }
+        body { font-family: sans-serif; background: #0a0a0a; color: #d0d0d0; text-align: center; padding: 10px; margin: 0; overflow-x: hidden; }
+        .val { font-size: 38px; font-weight: bold; color: #00ff00; }
+        .adj-btn { width: 55px; height: 55px; font-size: 24px; border-radius: 50%; background: #222; color: white; border: 1px solid #444; margin: 5px; }
+        #status { font-size: 13px; color: #888; margin: 5px 0; letter-spacing: 1px; height: 1.2em; text-transform: uppercase; }
+        #timeLeft { font-size: 44px; font-family: monospace; color: #00ff00; margin: 2px 0; }
         
-        .nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
-        .nav-btn { padding: 18px 5px; font-size: 14px; background: #1a1a1a; border: 1px solid #333; color: #aaa; border-radius: 8px; }
+        .nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+        .nav-btn { padding: 12px 2px; font-size: 13px; background: #1a1a1a; border: 1px solid #333; color: #aaa; border-radius: 8px; }
         
-        #trackProgress { font-size: 20px; font-family: monospace; color: #aaa; margin-bottom: 15px; }
+        #trackProgress { font-size: 18px; font-family: monospace; color: #aaa; margin-bottom: 10px; }
 
-        /* THE UPDATED DYNAMIC BOX */
+        /* COMPACT DYNAMIC BOX */
         #fileInput { display: none; }
         .file-label { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            min-height: 80px; 
-            padding: 15px; 
-            border: 2px dashed #444; 
-            border-radius: 12px; 
-            margin: 10px 0; 
+            display: block; 
+            padding: 12px; 
+            border: 1px dashed #444; 
+            border-radius: 10px; 
+            margin: 5px 0; 
             cursor: pointer; 
             background: #111;
-            transition: all 0.3s ease;
+            font-size: 13px; /* Original size */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .file-label.loaded {
-            border: 2px solid #2a5a2a;
+            border: 1px solid #2a5a2a;
             background: #0d1a0d;
             color: #fff;
-            font-size: 18px;
-            font-weight: bold;
         }
 
-        .arm-btn { width: 100%; padding: 25px; font-size: 24px; background: #1a3a1a; color: white; border: 2px solid #2a5a2a; border-radius: 15px; font-weight: bold; letter-spacing: 2px; }
-        .stop-btn { width: 100%; padding: 20px; font-size: 18px; background: #500; color: white; border: none; border-radius: 12px; margin-top: 10px; display: none; font-weight: bold; }
+        .arm-btn { width: 100%; padding: 20px; font-size: 22px; background: #1a3a1a; color: white; border: 2px solid #2a5a2a; border-radius: 12px; font-weight: bold; letter-spacing: 2px; }
+        .stop-btn { width: 100%; padding: 15px; font-size: 18px; background: #500; color: white; border: none; border-radius: 12px; margin-top: 5px; display: none; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -69,7 +67,7 @@
     <label for="fileInput" class="file-label" id="fileLabel">SELECT AUDIO FILE</label>
     
     <button id="startBtn" class="arm-btn" onclick="armSystem()">ARM</button>
-    <button id="stopBtn" class="stop-btn" onclick="stopSystem()">ABORT MISSION</button>
+    <button id="stopBtn" class="stop-btn" onclick="stopSystem()">STOP</button>
 
     <script>
         let player = new Audio();
@@ -101,20 +99,18 @@
             player.src = URL.createObjectURL(file);
             player.load();
             
-            // Update the box style and text
             const label = document.getElementById('fileLabel');
             label.innerText = file.name;
             label.classList.add('loaded');
-            
             updateStatus("FILE READY", false);
         }
 
         async function armSystem() {
-            if (!player.src) return alert("Please select a file.");
+            if (!player.src) return alert("Select file.");
             try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e){}
             
             player.play();
-            updateStatus("SYSTEM ARMED", true);
+            updateStatus("ARMED", true);
             
             document.getElementById('startBtn').style.display = 'none';
             document.getElementById('stopBtn').style.display = 'block';
